@@ -508,9 +508,9 @@ def myrun():
 							videos = get_videos_from_playlist(PLAYLIST_FILE)
 
 							with open(PLAYLIST_FILE, "r", encoding="utf-8") as file:
-								content = file.read()
+								lines = file.readlines()
 
-							st.write(content)
+							st.write(lines)
 
 							if not videos:
 								st.write("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
