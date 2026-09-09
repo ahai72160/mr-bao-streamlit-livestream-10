@@ -10,7 +10,6 @@ from Crypto.Cipher import AES
 import base64
 import psutil
 import imageio_ffmpeg
-FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 
@@ -234,7 +233,51 @@ def myrun():
 	st.write("# Welcome to livestream tool.")
 	st.sidebar.success("Select a demo above.")
 
+	FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 	st.write('FFMPEG_PATH - ', FFMPEG_PATH)
+
+	def livestream_playlist(playlist_path: str, rtmp_url: str):
+		videos = []
+		# Đọc playlist
+		with open(playlist_path, "r", encoding="utf-8") as f:
+			for line in f:
+				line = line.strip()
+				if not line or line.startswith("#"):
+					continue
+				if line.startswith("file"):
+					# Hỗ trợ: file 'video1.mp4' hoặc file "video1.mp4"
+					parts = line.split(None, 1)
+					if len(parts) < 2:
+						continue
+					video = parts[1].strip().strip("'\"")
+					videos.append(video)
+
+		if not videos:
+			raise ValueError(f"Không tìm thấy video nào trong playlist: {playlist_path}")
+
+		st.write(f"Found {len(videos)} videos")
+
+		while True:
+			for video in videos:
+				print(f"Streaming: {video}")
+				cmd = [
+					FFMPEG_PATH, "-re", "-i", video,
+					"-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+					"-c:a", "aac", "-b:a", "160k",
+					"-f", "flv",
+					rtmp_url,
+				]
+				result = subprocess.run(cmd)
+				if result.returncode != 0:
+					st.write(f"FFmpeg exited with code {result.returncode}: {video}")
+				st.write(f"Finished: {video}")
+
+	stream_key = "live_1374640001_lcvrwTVYDEfKhoHqGueOy55qFIgkmk"
+
+	playlist_path = "playlist.txt"
+	stream_url = f"rtmp://live.twitch.tv/app/{stream_key}"
+
+	livestream_playlist(playlist_path, stream_url)
 
 
 	# Get all query parameters as a dictionary
