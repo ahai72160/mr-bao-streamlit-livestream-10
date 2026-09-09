@@ -9,6 +9,10 @@ from zoneinfo import ZoneInfo  # built-in module for time zones (Python 3.9+) th
 from Crypto.Cipher import AES
 import base64
 import psutil
+import imageio_ffmpeg
+FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+st.write('FFMPEG_PATH - ', FFMPEG_PATH)
+
 
 
 LOGGER = get_logger(__name__)
