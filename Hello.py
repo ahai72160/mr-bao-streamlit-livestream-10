@@ -435,104 +435,77 @@ def myrun():
 											st.write(f"[CẢNH BÁO] Không tìm thấy file video: {video_path}")
 							return videos
 
-
-						def stream_video(video_path):
-							"""Phát một video cụ thể lên Twitch bằng FFmpeg"""
-							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
-
-							# Lệnh FFmpeg chuẩn cho Twitch (720p/1080p, 30/60fps, bitrate phù hợp)
-							cmd = [
-								FFMPEG_PATH,
-								"-re",  # Đọc ở tốc độ khung hình thực tế của video
-								"-i",
-								video_path,
-								# Cấu hình Video (H.264, tương thích tốt nhất với Twitch)
-								"-c:v",
-								"libx264",
-								"-preset",
-								"veryfast",
-								"-b:v",
-								"3000k",  # Bitrate video (3 Mbps - phù hợp mạng trung bình)
-								"-maxrate",
-								"3000k",
-								"-bufsize",
-								"6000k",
-								"-pix_fmt",
-								"yuv420p",
-								"-g",
-								"60",  # Keyframe interval (2 giây nếu 30fps)
-								# Cấu hình Audio (AAC)
-								"-c:a",
-								"aac",
-								"-b:a",
-								"128k",
-								"-ar",
-								"44100",
-								# Định dạng đầu ra FLV để đẩy lên RTMP
-								"-f",
-								"flv",
-								RTMP_URL,
-							]
-
-							try:
-								# Chạy tiến trình FFmpeg
-								process = subprocess.Popen(
-									cmd,
-									stdout=subprocess.PIPE,
-									stderr=subprocess.STDOUT,
-									universal_newlines=True,
-								)
-
-								# In log của ffmpeg ra màn hình (tùy chọn, giúp theo dõi lỗi nếu có)
-								while True:
-									output = process.stdout.readline()
-									if output == "" and process.poll() is not None:
-										break
-									if output:
-										# In ra một số dòng trạng thái (bỏ qua để màn hình đỡ rối nếu muốn)
-										st.write(output.strip())
-
-								return process.poll()
-							except Exception as e:
-								st.write(f"[LỖI] Đã xảy ra lỗi khi chạy FFmpeg: {e}")
-								return 1
-
-
 						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
-						if STREAM_KEY is None:
-							st.write("[LỖI] Vui lòng cập nhật Stream Key thật của bạn vào biến STREAM_KEY!")
-							return
+						# Lệnh FFmpeg sử dụng Concat Demuxer để stream toàn bộ playlist liên tục
+						cmd = [
+							FFMPEG_PATH,
+							"-v",
+							"info",
+							"-re",
+							"-fflags",
+							"+genpts",
+							"-stream_loop",
+							"-1",  # Lặp lại playlist vô hạn (-1 = vô tận)
+							"-f",
+							"concat",
+							"-safe",
+							"0",
+							"-i",
+							PLAYLIST_FILE,
+							# Cấu hình Video
+							"-c:v",
+							"libx264",
+							"-preset",
+							"veryfast",  # Đổi từ ultrafast sang veryfast để ổn định hơn, tránh lỗi -11
+							"-b:v",
+							"3000k",
+							"-maxrate",
+							"3000k",
+							"-bufsize",
+							"6000k",
+							"-vf",
+							"scale=1280:720,format=yuv420p",  # Scale về 720p (khớp với video gốc 1280x720 để nhẹ máy)
+							"-r",
+							"30",
+							"-g",
+							"60",
+							# Cấu hình Audio (Chuẩn hóa âm thanh để tránh lệch tiếng)
+							"-c:a",
+							"aac",
+							"-b:a",
+							"128k",
+							"-ar",
+							"44100",
+							"-ac",
+							"2",  # Ép stereo (2 kênh) vì video gốc của bạn là mono (1 kênh), Twitch thích hợp stereo hơn
+							# Đầu ra RTMP
+							"-f",
+							"flv",
+							RTMP_URL,
+						]
 
-						while True:
-							#videos = get_videos_from_playlist(PLAYLIST_FILE)
-							#with open(PLAYLIST_FILE, "r", encoding="utf-8") as file:
-							#	lines = file.readlines()
-							#st.write(lines)
+						print(f"Đang chạy lệnh FFmpeg:\n{' '.join(cmd)}\n")
 
-							videos = video_path_arr
+						try:
+							# Chạy tiến trình livestream
+							process = subprocess.Popen(
+								cmd,
+								stdout=subprocess.PIPE,
+								stderr=subprocess.STDOUT,
+								universal_newlines=True,
+							)
 
-							if not videos:
-								st.write("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
-								time.sleep(10)
-								continue
+							# Đọc log từ FFmpeg
+							while True:
+								output = process.stdout.readline()
+								if output == "" and process.poll() is not None:
+									break
+								if output:
+									print(output.strip())
 
-							st.write(f"Tìm thấy {len(videos)} video trong playlist. Bắt đầu phát vòng lặp...")
-
-							for video in videos:
-								exit_code = stream_video(video)
-
-								if exit_code != 0:
-									st.write(
-										f"[CẢNH BÁO] Video {video} dừng lại với mã lỗi {exit_code}. Chuyển sang video tiếp theo..."
-									)
-
-								# Nghỉ ngắn giữa các video
-								time.sleep(2)
-
-							st.write("\n--- Đã phát hết playlist. Đang lặp lại từ đầu... ---\n")
-
-
+						except Exception as e:
+							print(f"[LỖI NGOẠI LỆ]: {e}")
 
 
 						st.write(heoquay)
