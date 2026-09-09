@@ -353,9 +353,9 @@ def myrun():
 				command = data.get("command")
 
 
-				st.write("Email:", emailpcloud)
-				st.write("Password:", passpcloud)
-				st.write("folderidpcloud:", folderidpcloud)
+				#st.write("Email:", emailpcloud)
+				#st.write("Password:", passpcloud)
+				#st.write("folderidpcloud:", folderidpcloud)
 				st.write("platform:", platform)
 				st.write("stream_key:", stream_key)
 				st.write("loop_count:", loop_count)
