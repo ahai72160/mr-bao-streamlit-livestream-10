@@ -12,8 +12,9 @@ import base64
 import psutil
 
 from mediafire.client import MediaFireClient
-import imageio_ffmpeg
-
+#import imageio_ffmpeg #Lưu ý cái này ko livestram được, chỉ cho xử lý video, tested mất quá nhiều thời gian vói nó
+#FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+#st.write('FFMPEG_PATH - ', FFMPEG_PATH)
 
 
 LOGGER = get_logger(__name__)
@@ -317,9 +318,6 @@ def myrun():
 	st.write("# Welcome to livestream tool.")
 	st.sidebar.success("Select a demo above.")
 
-	FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
-	st.write('FFMPEG_PATH - ', FFMPEG_PATH)
-
 	# Get all query parameters as a dictionary
 	all_params = st.query_params.to_dict()
 	#st.write(all_params)
@@ -388,137 +386,19 @@ def myrun():
 						#playlist_file = "/tmp/playlist.txt"
 						convert_video_path_arr_to_playlist_txt_file(video_path_arr, playlist_file)
 
-						#total_time = count_total_video_time(result_video_path_arr)
-						#st.write(f"Tổng thời lượng: {total_time}")
+						total_time = count_total_video_time(result_video_path_arr)
+						st.write(f"Tổng thời lượng: {total_time}")
 
 						#send email for notification before running               
-						#subject = "noreply"
-						#html_body = f"Starting livestream from server URL: {streamlit_url} - total time:{total_time}"
-						#send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
+						subject = "noreply"
+						html_body = f"Starting livestream from server URL: {streamlit_url} - total time:{total_time}"
+						send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
 
+						result = run_command_line(command, returnValue=True, ShowError=True)
 
-						st.write(command)
-
-						# ==================== CẤU HÌNH ====================
-						# Lấy đường dẫn ffmpeg tự động từ imageio_ffmpeg
-						FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
-						st.write('FFMPEG_PATH - ', FFMPEG_PATH)
-
-						# Thay thế bằng Stream Key của bạn (Lấy từ Twitch Dashboard)
-						#STREAM_KEY = "live_xxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-						STREAM_KEY = stream_key
-
-						# URL RTMP của Twitch (Chọn server gần bạn nhất, ví dụ: hkg01 (Hong Kong), sin01 (Singapore))
-						# Danh sách server: https://stream.twitch.tv/ingests/
-						RTMP_URL = f"rtmp://live.twitch.tv/app/{STREAM_KEY}"
-
-						# File chứa danh sách video
-						#PLAYLIST_FILE = "playlist.txt"
-						PLAYLIST_FILE = playlist_file
-						# ==================================================
-
-						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
-
-						# Danh sách video của bạn
-						VIDEOS = video_path_arr
-						# ==================================================
-
-						def stream_single_video(video_path):
-							"""Phát một video đơn lẻ lên Twitch và in toàn bộ lỗi nếu có"""
-							if not os.path.exists(video_path):
-								st.write(f"[LỖI] Không tìm thấy file: {video_path}")
-								return False
-
-							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
-
-							# Lệnh FFmpeg tối giản, an toàn tuyệt đối, tương thích mọi hệ thống Linux
-							cmd = [
-								FFMPEG_PATH,
-								"-re",
-								"-i",
-								video_path,
-								"-c:v",
-								"libx264",
-								"-preset",
-								"ultrafast",
-								"-b:v",
-								"3000k",
-								"-maxrate",
-								"3000k",
-								"-bufsize",
-								"6000k",
-								"-pix_fmt",
-								"yuv420p",
-								"-c:a",
-								"aac",
-								"-b:a",
-								"128k",
-								"-f",
-								"flv",
-								RTMP_URL,
-							]
-
-							try:
-								# Chạy tiến trình và bắt mọi thông báo lỗi từ stderr
-								process = subprocess.Popen(
-									cmd,
-									stdout=subprocess.PIPE,
-									stderr=subprocess.STDOUT,
-									universal_newlines=True,
-								)
-
-								# In từng dòng log phát ra từ FFmpeg để chúng ta thấy chính xác lỗi ở đâu
-								while True:
-									output = process.stdout.readline()
-									if output == "" and process.poll() is not None:
-										break
-									if output:
-										st.write(f"FFmpeg: {output.strip()}")
-
-								# Kiểm tra mã trả về của tiến trình
-								return process.returncode == 0
-
-							except Exception as e:
-								st.write(f"[LỖI NGOẠI LỆ PYTHON]: {e}")
-								return False
-
-
-						def myfunc():
-							st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
-
-							valid_videos = [v for v in VIDEOS if os.path.exists(v)]
-							if not valid_videos:
-								st.write("[LỖI] Không có file video nào hợp lệ trong danh sách!")
-								return
-
-							st.write(f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream...")
-
-							#while True:
-							for x in range(2):
-								for video in valid_videos:
-									success = stream_single_video(video)
-									if not success:
-										st.write(
-											f"[CẢNH BÁO] Video {video} bị lỗi hoặc bị từ chối kết nối RTMP!"
-										)
-									time.sleep(1)
-
-								st.write(
-									"\n--- ĐÃ PHÁT XONG PLAYLIST. TIẾN HÀNH LẶP LẠI TỪ ĐẦU --- \n"
-								)
-
-
-						myfunc()
-
-
-
-
-
-						#result = run_command_line(command, returnValue=True, ShowError=True)
-
-						#subject = "noreply"
-						#html_body = f"Ending livestream from server URL: {streamlit_url}"
-						#send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
+						subject = "noreply"
+						html_body = f"Ending livestream from server URL: {streamlit_url}"
+						send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
 
 					#C1; run function Chạy bình thường trên server để kiểm tra ok hết mới chạy trong background
 					run_chain_thread_background()
