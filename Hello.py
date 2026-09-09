@@ -423,11 +423,10 @@ def myrun():
 							FFMPEG_PATH,
 							"-v",
 							"info",
-							"-re",
 							"-fflags",
-							"+genpts",
+							"+genpts+nobuffer",  # Thêm nobuffer để tránh bị treo ở đầu
 							"-stream_loop",
-							"-1",  # Lặp lại playlist vô hạn (-1 = vô tận)
+							"-1",  # Lặp lại playlist vô hạn
 							"-f",
 							"concat",
 							"-safe",
@@ -438,7 +437,9 @@ def myrun():
 							"-c:v",
 							"libx264",
 							"-preset",
-							"veryfast",  # Đổi từ ultrafast sang veryfast để ổn định hơn, tránh lỗi -11
+							"veryfast",
+							"-tune",
+							"zerolatency",  # Giúp bắt đầu encode lập tức, không chờ đệm
 							"-b:v",
 							"3000k",
 							"-maxrate",
@@ -446,12 +447,12 @@ def myrun():
 							"-bufsize",
 							"6000k",
 							"-vf",
-							"scale=1280:720,format=yuv420p",  # Scale về 720p (khớp với video gốc 1280x720 để nhẹ máy)
+							"scale=1280:720,format=yuv420p",
 							"-r",
 							"30",
 							"-g",
 							"60",
-							# Cấu hình Audio (Chuẩn hóa âm thanh để tránh lệch tiếng)
+							# Cấu hình Audio
 							"-c:a",
 							"aac",
 							"-b:a",
@@ -459,7 +460,7 @@ def myrun():
 							"-ar",
 							"44100",
 							"-ac",
-							"2",  # Ép stereo (2 kênh) vì video gốc của bạn là mono (1 kênh), Twitch thích hợp stereo hơn
+							"2",
 							# Đầu ra RTMP
 							"-f",
 							"flv",
@@ -469,15 +470,16 @@ def myrun():
 						st.write(f"Đang chạy lệnh FFmpeg:\n{' '.join(cmd)}\n")
 
 						try:
-							# Chạy tiến trình livestream
+							# Sử dụng Popen và bắt luồng stderr (FFmpeg xuất toàn bộ log ra stderr)
 							process = subprocess.Popen(
 								cmd,
 								stdout=subprocess.PIPE,
 								stderr=subprocess.STDOUT,
 								universal_newlines=True,
+								bufsize=1,  # Line buffered để in log ngay lập tức
 							)
 
-							# Đọc log từ FFmpeg
+							# Đọc log realtime từ FFmpeg
 							while True:
 								output = process.stdout.readline()
 								if output == "" and process.poll() is not None:
