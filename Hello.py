@@ -485,7 +485,7 @@ def myrun():
 							RTMP_URL,
 						]
 
-						print(f"Đang chạy lệnh FFmpeg:\n{' '.join(cmd)}\n")
+						st.write(f"Đang chạy lệnh FFmpeg:\n{' '.join(cmd)}\n")
 
 						try:
 							# Chạy tiến trình livestream
@@ -502,138 +502,11 @@ def myrun():
 								if output == "" and process.poll() is not None:
 									break
 								if output:
-									print(output.strip())
+									st.write(output.strip())
 
 						except Exception as e:
-							print(f"[LỖI NGOẠI LỆ]: {e}")
+							st.write(f"[LỖI NGOẠI LỆ]: {e}")
 
-
-						st.write(heoquay)
-
-
-
-						_ = """
-						st.write(
-							subprocess.run(
-								[
-									FFMPEG_PATH,
-									"-encoders"
-								],
-								capture_output=True,
-								text=True
-							).stdout
-						)
-						_ = """
-
-
-						def livestream_playlist(playlist_path: str, rtmp_url: str):
-							videos = []
-							# Đọc playlist
-							with open(playlist_path, "r", encoding="utf-8") as f:
-								for line in f:
-									line = line.strip()
-									if not line or line.startswith("#"):
-										continue
-									if line.startswith("file"):
-										# Hỗ trợ: file 'video1.mp4' hoặc file "video1.mp4"
-										parts = line.split(None, 1)
-										if len(parts) < 2:
-											continue
-										video = parts[1].strip().strip("'\"")
-										videos.append(video)
-
-							if not videos:
-								raise ValueError(f"Không tìm thấy video nào trong playlist: {playlist_path}")
-
-							st.write(f"Found {len(videos)} videos")
-
-							command = f"{FFMPEG_PATH} -v debug -re -fflags +genpts -f concat -safe 0 -i {playlist_path} -c:v libx264 -preset ultrafast -tune zerolatency -vf scale=1920:1080 -r 30 -b:v 3000k -maxrate 3000k -bufsize 6000k -g 60 -pix_fmt yuv420p -c:a aac -b:a 128k -f flv {rtmp_url}"
-
-							#while True: 
-							for x in range(1):
-								for video in videos:
-									st.write(f"Streaming: {video}")
-									#cmd = command
-									cmd = [
-										FFMPEG_PATH,
-
-										"-v",
-										"debug",
-
-										"-re",
-
-										"-fflags",
-										"+genpts",
-
-										"-stream_loop",
-										"-1",
-
-										"-f",
-										"concat",
-
-										"-safe",
-										"0",
-
-										"-i",
-										playlist_path,
-
-
-										"-c:v",
-										"libx264",
-
-										"-preset",
-										"ultrafast",
-
-										"-tune",
-										"zerolatency",
-
-										"-vf",
-										"scale=1920:1080",
-
-										"-r",
-										"30",
-
-										"-b:v",
-										"3000k",
-
-										"-maxrate",
-										"3000k",
-
-										"-bufsize",
-										"6000k",
-
-										"-g",
-										"60",
-
-										"-pix_fmt",
-										"yuv420p",
-
-
-										"-c:a",
-										"aac",
-
-										"-b:a",
-										"128k",
-
-
-										"-f",
-										"flv",
-
-										rtmp_url
-									]
-
-
-
-									result = subprocess.run(
-										cmd,
-										stdout=subprocess.PIPE,
-										stderr=subprocess.STDOUT,
-										text=True
-									)
-
-									if result.returncode != 0:
-										st.write(f"FFmpeg exited with code {result.returncode}: {video}")
-									st.write(f"Finished: {video}")
 
 						playlist_path = "/tmp/playlist.txt"
 						rtmp_url = f"rtmp://live.twitch.tv/app/{stream_key}"
