@@ -272,8 +272,6 @@ def myrun():
 					st.write(f"FFmpeg exited with code {result.returncode}: {video}")
 				st.write(f"Finished: {video}")
 
-	stream_key = "live_1374640001_lcvrwTVYDEfKhoHqGueOy55qFIgkmk"
-
 	playlist_path = "playlist.txt"
 	stream_url = f"rtmp://live.twitch.tv/app/{stream_key}"
 
