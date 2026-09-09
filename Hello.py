@@ -4,6 +4,7 @@ import os, sys, requests, json
 from os import walk
 import subprocess
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo  # built-in module for time zones (Python 3.9+) thay cho from pytz import timezone
 from Crypto.Cipher import AES
@@ -502,7 +503,7 @@ def myrun():
 							st.write("[LỖI] Không có file video nào hợp lệ trong danh sách!")
 							return
 
-						print(
+						st.write(
 							f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream vòng lặp 24/7..."
 						)
 
@@ -511,7 +512,7 @@ def myrun():
 							for video in valid_videos:
 								success = stream_single_video(video)
 								if not success:
-									print(
+									st.write(
 										f"[CẢNH BÁO] Phát video {video} gặp sự cố. Chuyển sang video tiếp theo..."
 									)
 								time.sleep(1)  # Nghỉ 1 giây giữa các video
