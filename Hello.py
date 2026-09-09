@@ -493,7 +493,8 @@ def myrun():
 
 							st.write(f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream...")
 
-							while True:
+							#while True:
+							for x in range(2):
 								for video in valid_videos:
 									success = stream_single_video(video)
 									if not success:
