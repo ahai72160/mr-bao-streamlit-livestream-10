@@ -402,6 +402,7 @@ def myrun():
 						FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 						st.write('FFMPEG_PATH - ', FFMPEG_PATH)
 
+						_ = """
 						st.write(
 							subprocess.run(
 								[
@@ -412,6 +413,7 @@ def myrun():
 								text=True
 							).stdout
 						)
+						_ = """
 
 
 
