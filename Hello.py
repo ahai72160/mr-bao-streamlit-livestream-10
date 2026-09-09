@@ -9,6 +9,8 @@ from zoneinfo import ZoneInfo  # built-in module for time zones (Python 3.9+) th
 from Crypto.Cipher import AES
 import base64
 import psutil
+
+from mediafire.client import MediaFireClient
 import imageio_ffmpeg
 
 

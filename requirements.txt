@@ -3,7 +3,8 @@ pandas==2.3.3
 pydeck==0.9.1
 streamlit==1.41.1
 pycryptodome==3.23.0
+mediafire==0.6.1
 pcloud==1.4
 ffmpeg-python==0.2.0
-psutil==7.0.0
 imageio-ffmpeg
+psutil==7.0.0
