@@ -426,10 +426,10 @@ def myrun():
 						def stream_single_video(video_path):
 							"""Phát một video đơn lẻ lên Twitch và in toàn bộ lỗi nếu có"""
 							if not os.path.exists(video_path):
-								print(f"[LỖI] Không tìm thấy file: {video_path}")
+								st.write(f"[LỖI] Không tìm thấy file: {video_path}")
 								return False
 
-							print(f"\n[ĐANG PHÁT] ---> {video_path}")
+							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
 
 							# Lệnh FFmpeg tối giản, an toàn tuyệt đối, tương thích mọi hệ thống Linux
 							cmd = [
@@ -473,36 +473,36 @@ def myrun():
 									if output == "" and process.poll() is not None:
 										break
 									if output:
-										print(f"FFmpeg: {output.strip()}")
+										st.write(f"FFmpeg: {output.strip()}")
 
 								# Kiểm tra mã trả về của tiến trình
 								return process.returncode == 0
 
 							except Exception as e:
-								print(f"[LỖI NGOẠI LỆ PYTHON]: {e}")
+								st.write(f"[LỖI NGOẠI LỆ PYTHON]: {e}")
 								return False
 
 
 						def myfunc():
-							print(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
+							st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
 							valid_videos = [v for v in VIDEOS if os.path.exists(v)]
 							if not valid_videos:
-								print("[LỖI] Không có file video nào hợp lệ trong danh sách!")
+								st.write("[LỖI] Không có file video nào hợp lệ trong danh sách!")
 								return
 
-							print(f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream...")
+							st.write(f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream...")
 
 							while True:
 								for video in valid_videos:
 									success = stream_single_video(video)
 									if not success:
-										print(
+										st.write(
 											f"[CẢNH BÁO] Video {video} bị lỗi hoặc bị từ chối kết nối RTMP!"
 										)
 									time.sleep(1)
 
-								print(
+								st.write(
 									"\n--- ĐÃ PHÁT XONG PLAYLIST. TIẾN HÀNH LẶP LẠI TỪ ĐẦU --- \n"
 								)
 
