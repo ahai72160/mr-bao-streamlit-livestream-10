@@ -399,8 +399,143 @@ def myrun():
 
 						st.write(command)
 
+						# ==================== CẤU HÌNH ====================
+						# Lấy đường dẫn ffmpeg tự động từ imageio_ffmpeg
 						FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 						st.write('FFMPEG_PATH - ', FFMPEG_PATH)
+
+						# Thay thế bằng Stream Key của bạn (Lấy từ Twitch Dashboard)
+						#STREAM_KEY = "live_xxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+						STREAM_KEY = stream_key
+
+						# URL RTMP của Twitch (Chọn server gần bạn nhất, ví dụ: hkg01 (Hong Kong), sin01 (Singapore))
+						# Danh sách server: https://stream.twitch.tv/ingests/
+						RTMP_URL = f"rtmp://live.twitch.tv/app/{STREAM_KEY}"
+
+						# File chứa danh sách video
+						#PLAYLIST_FILE = "playlist.txt"
+						PLAYLIST_FILE = playlist_file
+						# ==================================================
+
+
+						def get_videos_from_playlist(playlist_path):
+							"""Đọc danh sách video từ file playlist.txt"""
+							if not os.path.exists(playlist_path):
+								st.write(f"[LỖI] Không tìm thấy file {playlist_path}!")
+								return []
+
+							videos = []
+							with open(playlist_path, "r", encoding="utf-8") as f:
+								for line in f:
+									video_path = line.strip()
+									# Bỏ qua dòng trống hoặc chú thích (#)
+									if video_path and not video_path.startswith("#"):
+										if os.path.exists(video_path):
+											videos.append(video_path)
+										else:
+											print(f"[CẢNH BÁO] Không tìm thấy file video: {video_path}")
+							return videos
+
+
+						def stream_video(video_path):
+							"""Phát một video cụ thể lên Twitch bằng FFmpeg"""
+							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
+
+							# Lệnh FFmpeg chuẩn cho Twitch (720p/1080p, 30/60fps, bitrate phù hợp)
+							cmd = [
+								FFMPEG_PATH,
+								"-re",  # Đọc ở tốc độ khung hình thực tế của video
+								"-i",
+								video_path,
+								# Cấu hình Video (H.264, tương thích tốt nhất với Twitch)
+								"-c:v",
+								"libx264",
+								"-preset",
+								"veryfast",
+								"-b:v",
+								"3000k",  # Bitrate video (3 Mbps - phù hợp mạng trung bình)
+								"-maxrate",
+								"3000k",
+								"-bufsize",
+								"6000k",
+								"-pix_fmt",
+								"yuv420p",
+								"-g",
+								"60",  # Keyframe interval (2 giây nếu 30fps)
+								# Cấu hình Audio (AAC)
+								"-c:a",
+								"aac",
+								"-b:a",
+								"128k",
+								"-ar",
+								"44100",
+								# Định dạng đầu ra FLV để đẩy lên RTMP
+								"-f",
+								"flv",
+								RTMP_URL,
+							]
+
+							try:
+								# Chạy tiến trình FFmpeg
+								process = subprocess.Popen(
+									cmd,
+									stdout=subprocess.PIPE,
+									stderr=subprocess.STDOUT,
+									universal_newlines=True,
+								)
+
+								# In log của ffmpeg ra màn hình (tùy chọn, giúp theo dõi lỗi nếu có)
+								while True:
+									output = process.stdout.readline()
+									if output == "" and process.poll() is not None:
+										break
+									if output:
+										# In ra một số dòng trạng thái (bỏ qua để màn hình đỡ rối nếu muốn)
+										st.write(output.strip())
+
+								return process.poll()
+							except Exception as e:
+								st.write(f"[LỖI] Đã xảy ra lỗi khi chạy FFmpeg: {e}")
+								return 1
+
+
+						def myfunc():
+							st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
+
+							if "live_" in STREAM_KEY:
+								st.write("[LỖI] Vui lòng cập nhật Stream Key thật của bạn vào biến STREAM_KEY!")
+								return
+
+							while True:
+								videos = get_videos_from_playlist(PLAYLIST_FILE)
+
+								if not videos:
+									print("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
+									time.sleep(10)
+									continue
+
+								st.write(f"Tìm thấy {len(videos)} video trong playlist. Bắt đầu phát vòng lặp...")
+
+								for video in videos:
+									exit_code = stream_video(video)
+
+									if exit_code != 0:
+										st.write(
+											f"[CẢNH BÁO] Video {video} dừng lại với mã lỗi {exit_code}. Chuyển sang video tiếp theo..."
+										)
+
+									# Nghỉ ngắn giữa các video
+									time.sleep(2)
+
+								st.write("\n--- Đã phát hết playlist. Đang lặp lại từ đầu... ---\n")
+
+
+						myfunc()
+
+
+						st.write(heoquay)
+
+
 
 						_ = """
 						st.write(
