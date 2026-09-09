@@ -418,77 +418,110 @@ def myrun():
 
 						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
-						# Lệnh FFmpeg sử dụng Concat Demuxer để stream toàn bộ playlist liên tục
-						cmd = [
-							FFMPEG_PATH,
-							"-v",
-							"info",
-							"-fflags",
-							"+genpts+nobuffer",  # Thêm nobuffer để tránh bị treo ở đầu
-							"-stream_loop",
-							"-1",  # Lặp lại playlist vô hạn
-							"-f",
-							"concat",
-							"-safe",
-							"0",
-							"-i",
-							PLAYLIST_FILE,
-							# Cấu hình Video
-							"-c:v",
-							"libx264",
-							"-preset",
-							"veryfast",
-							"-tune",
-							"zerolatency",  # Giúp bắt đầu encode lập tức, không chờ đệm
-							"-b:v",
-							"3000k",
-							"-maxrate",
-							"3000k",
-							"-bufsize",
-							"6000k",
-							"-vf",
-							"scale=1280:720,format=yuv420p",
-							"-r",
-							"30",
-							"-g",
-							"60",
-							# Cấu hình Audio
-							"-c:a",
-							"aac",
-							"-b:a",
-							"128k",
-							"-ar",
-							"44100",
-							"-ac",
-							"2",
-							# Đầu ra RTMP
-							"-f",
-							"flv",
-							RTMP_URL,
-						]
+						# Danh sách video của bạn
+						VIDEOS = video_path_arr
+						# ==================================================
 
-						st.write(f"Đang chạy lệnh FFmpeg:\n{' '.join(cmd)}\n")
+						def stream_single_video(video_path):
+							"""Phát một video đơn lẻ lên Twitch"""
+							if not os.path.exists(video_path):
+								st.write(f"[LỖI] Không tìm thấy file: {video_path}")
+								return False
 
-						try:
-							# Sử dụng Popen và bắt luồng stderr (FFmpeg xuất toàn bộ log ra stderr)
-							process = subprocess.Popen(
-								cmd,
-								stdout=subprocess.PIPE,
-								stderr=subprocess.STDOUT,
-								universal_newlines=True,
-								bufsize=1,  # Line buffered để in log ngay lập tức
+							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
+
+							# Lệnh FFmpeg cho từng video riêng lẻ (Ổn định nhất, không bị kẹt concat)
+							cmd = [
+								FFMPEG_PATH,
+								"-re",  # Đọc theo tốc độ thời gian thực của video
+								"-i",
+								video_path,
+								# Cấu hình Video
+								"-c:v",
+								"libx264",
+								"-preset",
+								"veryfast",
+								"-tune",
+								"zerolatency",
+								"-b:v",
+								"3000k",
+								"-maxrate",
+								"3000k",
+								"-bufsize",
+								"6000k",
+								"-vf",
+								"scale=1280:720,format=yuv420p",
+								"-r",
+								"30",
+								"-g",
+								"60",
+								# Cấu hình Audio
+								"-c:a",
+								"aac",
+								"-b:a",
+								"128k",
+								"-ar",
+								"44100",
+								"-ac",
+								"2",
+								# Đầu ra RTMP
+								"-f",
+								"flv",
+								RTMP_URL,
+							]
+
+							try:
+								# Chạy tiến trình và hiển thị log trực tiếp
+								process = subprocess.Popen(
+									cmd,
+									stdout=subprocess.PIPE,
+									stderr=subprocess.STDOUT,
+									universal_newlines=True,
+								)
+
+								while True:
+									output = process.stdout.readline()
+									if output == "" and process.poll() is not None:
+										break
+									if output:
+										# In ra log của ffmpeg (bạn có thể thấy khung hình đang chạy)
+										print(output.strip())
+
+								return process.returncode == 0
+							except Exception as e:
+								print(f"[LỖI NGOẠI LỆ]: {e}")
+								return False
+
+
+						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
+
+						# Lọc danh sách file thực sự tồn tại trên ổ cứng
+						valid_videos = [v for v in VIDEOS if os.path.exists(v)]
+
+						if not valid_videos:
+							st.write("[LỖI] Không có file video nào hợp lệ trong danh sách!")
+							return
+
+						print(
+							f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream vòng lặp 24/7..."
+						)
+
+						# Vòng lặp vô hạn phát lại toàn bộ playlist
+						while True:
+							for video in valid_videos:
+								success = stream_single_video(video)
+								if not success:
+									print(
+										f"[CẢNH BÁO] Phát video {video} gặp sự cố. Chuyển sang video tiếp theo..."
+									)
+								time.sleep(1)  # Nghỉ 1 giây giữa các video
+
+							st.write(
+								"\n--- ĐÃ PHÁT XONG PLAYLIST. TIẾN HÀNH LẶP LẠI TỪ ĐẦU --- \n"
 							)
 
-							# Đọc log realtime từ FFmpeg
-							while True:
-								output = process.stdout.readline()
-								if output == "" and process.poll() is not None:
-									break
-								if output:
-									st.write(output.strip())
 
-						except Exception as e:
-							st.write(f"[LỖI NGOẠI LỆ]: {e}")
+
 
 
 						#result = run_command_line(command, returnValue=True, ShowError=True)
