@@ -424,9 +424,10 @@ def myrun():
 
 							st.write(f"Found {len(videos)} videos")
 
-							while True:
+							#while True: 
+							for x in range(1):
 								for video in videos:
-									print(f"Streaming: {video}")
+									st.write(f"Streaming: {video}")
 									cmd = [
 										FFMPEG_PATH, "-re", "-i", video,
 										"-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
