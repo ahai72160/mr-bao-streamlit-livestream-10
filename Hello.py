@@ -399,9 +399,21 @@ def myrun():
 
 						st.write(command)
 
-
 						FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 						st.write('FFMPEG_PATH - ', FFMPEG_PATH)
+
+						st.write(
+							subprocess.run(
+								[
+									FFMPEG_PATH,
+									"-encoders"
+								],
+								capture_output=True,
+								text=True
+							).stdout
+						)
+
+
 
 						def livestream_playlist(playlist_path: str, rtmp_url: str):
 							videos = []
