@@ -416,25 +416,6 @@ def myrun():
 						PLAYLIST_FILE = playlist_file
 						# ==================================================
 
-
-						def get_videos_from_playlist(playlist_path):
-							"""Đọc danh sách video từ file playlist.txt"""
-							if not os.path.exists(playlist_path):
-								st.write(f"[LỖI] Không tìm thấy file {playlist_path}!")
-								return []
-
-							videos = []
-							with open(playlist_path, "r", encoding="utf-8") as f:
-								for line in f:
-									video_path = line.strip()
-									# Bỏ qua dòng trống hoặc chú thích (#)
-									if video_path and not video_path.startswith("#"):
-										if os.path.exists(video_path):
-											videos.append(video_path)
-										else:
-											st.write(f"[CẢNH BÁO] Không tìm thấy file video: {video_path}")
-							return videos
-
 						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
 						# Lệnh FFmpeg sử dụng Concat Demuxer để stream toàn bộ playlist liên tục
@@ -508,18 +489,11 @@ def myrun():
 							st.write(f"[LỖI NGOẠI LỆ]: {e}")
 
 
-						playlist_path = "/tmp/playlist.txt"
-						rtmp_url = f"rtmp://live.twitch.tv/app/{stream_key}"
-						livestream_playlist(playlist_path, rtmp_url)
+						#result = run_command_line(command, returnValue=True, ShowError=True)
 
-						st.write(heoquay)
-
-
-						result = run_command_line(command, returnValue=True, ShowError=True)
-
-						subject = "noreply"
-						html_body = f"Ending livestream from server URL: {streamlit_url}"
-						send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
+						#subject = "noreply"
+						#html_body = f"Ending livestream from server URL: {streamlit_url}"
+						#send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
 
 					#C1; run function Chạy bình thường trên server để kiểm tra ok hết mới chạy trong background
 					run_chain_thread_background()
