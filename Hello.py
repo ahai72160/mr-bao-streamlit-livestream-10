@@ -352,7 +352,7 @@ def myrun():
 				playlist_file = data.get("playlist_file")
 				command = data.get("command")
 
-				_ = """
+
 				st.write("Email:", emailpcloud)
 				st.write("Password:", passpcloud)
 				st.write("folderidpcloud:", folderidpcloud)
@@ -364,7 +364,6 @@ def myrun():
 				st.write("email_receiver:", email_receiver)
 				st.write("playlist_file:", playlist_file)
 				st.write("command:", command)
-				_ = """
 
 
 				#if emailpcloud and passpcloud and folderidpcloud and platform and stream_key:
