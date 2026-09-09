@@ -508,7 +508,7 @@ def myrun():
 							videos = get_videos_from_playlist(PLAYLIST_FILE)
 
 							if not videos:
-								print("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
+								st.write("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
 								time.sleep(10)
 								continue
 
