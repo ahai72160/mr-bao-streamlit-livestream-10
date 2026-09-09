@@ -424,55 +424,42 @@ def myrun():
 						# ==================================================
 
 						def stream_single_video(video_path):
-							"""Phát một video đơn lẻ lên Twitch"""
+							"""Phát một video đơn lẻ lên Twitch và in toàn bộ lỗi nếu có"""
 							if not os.path.exists(video_path):
-								st.write(f"[LỖI] Không tìm thấy file: {video_path}")
+								print(f"[LỖI] Không tìm thấy file: {video_path}")
 								return False
 
-							st.write(f"\n[ĐANG PHÁT] ---> {video_path}")
+							print(f"\n[ĐANG PHÁT] ---> {video_path}")
 
-							# Lệnh FFmpeg cho từng video riêng lẻ (Ổn định nhất, không bị kẹt concat)
+							# Lệnh FFmpeg tối giản, an toàn tuyệt đối, tương thích mọi hệ thống Linux
 							cmd = [
 								FFMPEG_PATH,
-								"-re",  # Đọc theo tốc độ thời gian thực của video
+								"-re",
 								"-i",
 								video_path,
-								# Cấu hình Video
 								"-c:v",
 								"libx264",
 								"-preset",
-								"veryfast",
-								"-tune",
-								"zerolatency",
+								"ultrafast",
 								"-b:v",
 								"3000k",
 								"-maxrate",
 								"3000k",
 								"-bufsize",
 								"6000k",
-								"-vf",
-								"scale=1280:720,format=yuv420p",
-								"-r",
-								"30",
-								"-g",
-								"60",
-								# Cấu hình Audio
+								"-pix_fmt",
+								"yuv420p",
 								"-c:a",
 								"aac",
 								"-b:a",
 								"128k",
-								"-ar",
-								"44100",
-								"-ac",
-								"2",
-								# Đầu ra RTMP
 								"-f",
 								"flv",
 								RTMP_URL,
 							]
 
 							try:
-								# Chạy tiến trình và hiển thị log trực tiếp
+								# Chạy tiến trình và bắt mọi thông báo lỗi từ stderr
 								process = subprocess.Popen(
 									cmd,
 									stdout=subprocess.PIPE,
@@ -480,47 +467,47 @@ def myrun():
 									universal_newlines=True,
 								)
 
+								# In từng dòng log phát ra từ FFmpeg để chúng ta thấy chính xác lỗi ở đâu
 								while True:
 									output = process.stdout.readline()
 									if output == "" and process.poll() is not None:
 										break
 									if output:
-										# In ra log của ffmpeg (bạn có thể thấy khung hình đang chạy)
-										print(output.strip())
+										print(f"FFmpeg: {output.strip()}")
 
+								# Kiểm tra mã trả về của tiến trình
 								return process.returncode == 0
+
 							except Exception as e:
-								print(f"[LỖI NGOẠI LỆ]: {e}")
+								print(f"[LỖI NGOẠI LỆ PYTHON]: {e}")
 								return False
 
 
-						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
+						def myfunc():
+							print(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
-						# Lọc danh sách file thực sự tồn tại trên ổ cứng
-						valid_videos = [v for v in VIDEOS if os.path.exists(v)]
+							valid_videos = [v for v in VIDEOS if os.path.exists(v)]
+							if not valid_videos:
+								print("[LỖI] Không có file video nào hợp lệ trong danh sách!")
+								return
 
-						if not valid_videos:
-							st.write("[LỖI] Không có file video nào hợp lệ trong danh sách!")
-							return
+							print(f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream...")
 
-						st.write(
-							f"Đã nạp {len(valid_videos)} video. Bắt đầu livestream vòng lặp 24/7..."
-						)
+							while True:
+								for video in valid_videos:
+									success = stream_single_video(video)
+									if not success:
+										print(
+											f"[CẢNH BÁO] Video {video} bị lỗi hoặc bị từ chối kết nối RTMP!"
+										)
+									time.sleep(1)
 
-						# Vòng lặp vô hạn phát lại toàn bộ playlist
-						#while True:
-						for x in range(2):
-							for video in valid_videos:
-								success = stream_single_video(video)
-								if not success:
-									st.write(
-										f"[CẢNH BÁO] Phát video {video} gặp sự cố. Chuyển sang video tiếp theo..."
-									)
-								time.sleep(1)  # Nghỉ 1 giây giữa các video
+								print(
+									"\n--- ĐÃ PHÁT XONG PLAYLIST. TIẾN HÀNH LẶP LẠI TỪ ĐẦU --- \n"
+								)
 
-							st.write(
-								"\n--- ĐÃ PHÁT XONG PLAYLIST. TIẾN HÀNH LẶP LẠI TỪ ĐẦU --- \n"
-							)
+
+						myfunc()
 
 
 
