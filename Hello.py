@@ -501,7 +501,7 @@ def myrun():
 						def myfunc():
 							st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
-							if "live_" in STREAM_KEY:
+							if STREAM_KEY is None:
 								st.write("[LỖI] Vui lòng cập nhật Stream Key thật của bạn vào biến STREAM_KEY!")
 								return
 
