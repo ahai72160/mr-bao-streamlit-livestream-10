@@ -12,7 +12,8 @@ import base64
 import psutil
 
 from mediafire.client import MediaFireClient
-#import imageio_ffmpeg #Lưu ý cái này ko livestram được, chỉ cho xử lý video, tested mất quá nhiều thời gian vói nó
+#chỉ ffmpeg thuần binary mới livestream được
+#import imageio_ffmpeg #Lưu ý các thư python wrapper ffmpeg như này ko livestram được, chỉ cho xử lý video, tested mất quá nhiều thời gian vói nó
 #FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 #st.write('FFMPEG_PATH - ', FFMPEG_PATH)
 
