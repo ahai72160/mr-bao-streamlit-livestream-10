@@ -498,38 +498,36 @@ def myrun():
 								return 1
 
 
-						def myfunc():
-							st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
+						st.write(f"Sử dụng FFmpeg tại: {FFMPEG_PATH}")
 
-							if STREAM_KEY is None:
-								st.write("[LỖI] Vui lòng cập nhật Stream Key thật của bạn vào biến STREAM_KEY!")
-								return
+						if STREAM_KEY is None:
+							st.write("[LỖI] Vui lòng cập nhật Stream Key thật của bạn vào biến STREAM_KEY!")
+							return
 
-							while True:
-								videos = get_videos_from_playlist(PLAYLIST_FILE)
+						while True:
+							videos = get_videos_from_playlist(PLAYLIST_FILE)
 
-								if not videos:
-									print("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
-									time.sleep(10)
-									continue
+							if not videos:
+								print("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
+								time.sleep(10)
+								continue
 
-								st.write(f"Tìm thấy {len(videos)} video trong playlist. Bắt đầu phát vòng lặp...")
+							st.write(f"Tìm thấy {len(videos)} video trong playlist. Bắt đầu phát vòng lặp...")
 
-								for video in videos:
-									exit_code = stream_video(video)
+							for video in videos:
+								exit_code = stream_video(video)
 
-									if exit_code != 0:
-										st.write(
-											f"[CẢNH BÁO] Video {video} dừng lại với mã lỗi {exit_code}. Chuyển sang video tiếp theo..."
-										)
+								if exit_code != 0:
+									st.write(
+										f"[CẢNH BÁO] Video {video} dừng lại với mã lỗi {exit_code}. Chuyển sang video tiếp theo..."
+									)
 
-									# Nghỉ ngắn giữa các video
-									time.sleep(2)
+								# Nghỉ ngắn giữa các video
+								time.sleep(2)
 
-								st.write("\n--- Đã phát hết playlist. Đang lặp lại từ đầu... ---\n")
+							st.write("\n--- Đã phát hết playlist. Đang lặp lại từ đầu... ---\n")
 
 
-						myfunc()
 
 
 						st.write(heoquay)
