@@ -443,8 +443,84 @@ def myrun():
 							for x in range(1):
 								for video in videos:
 									st.write(f"Streaming: {video}")
-									cmd = command
-									result = subprocess.run(cmd)
+									#cmd = command
+									cmd = [
+										FFMPEG_PATH,
+
+										"-v",
+										"debug",
+
+										"-re",
+
+										"-fflags",
+										"+genpts",
+
+										"-stream_loop",
+										"-1",
+
+										"-f",
+										"concat",
+
+										"-safe",
+										"0",
+
+										"-i",
+										playlist_path,
+
+
+										"-c:v",
+										"libx264",
+
+										"-preset",
+										"ultrafast",
+
+										"-tune",
+										"zerolatency",
+
+										"-vf",
+										"scale=1920:1080",
+
+										"-r",
+										"30",
+
+										"-b:v",
+										"3000k",
+
+										"-maxrate",
+										"3000k",
+
+										"-bufsize",
+										"6000k",
+
+										"-g",
+										"60",
+
+										"-pix_fmt",
+										"yuv420p",
+
+
+										"-c:a",
+										"aac",
+
+										"-b:a",
+										"128k",
+
+
+										"-f",
+										"flv",
+
+										rtmp_url
+									]
+
+
+
+									result = subprocess.run(
+										cmd,
+										stdout=subprocess.PIPE,
+										stderr=subprocess.STDOUT,
+										text=True
+									)
+
 									if result.returncode != 0:
 										st.write(f"FFmpeg exited with code {result.returncode}: {video}")
 									st.write(f"Finished: {video}")
