@@ -416,7 +416,7 @@ def myrun():
 						_ = """
 
 
-						def livestream_playlist(playlist_path: str, stream_url: str):
+						def livestream_playlist(playlist_path: str, rtmp_url: str):
 							videos = []
 							# Đọc playlist
 							with open(playlist_path, "r", encoding="utf-8") as f:
@@ -437,7 +437,7 @@ def myrun():
 
 							st.write(f"Found {len(videos)} videos")
 
-							command = f"{FFMPEG_PATH} -v debug -re -fflags +genpts -f concat -safe 0 -i {playlist_path} -c:v libx264 -preset ultrafast -tune zerolatency -vf scale=1920:1080 -r 30 -b:v 3000k -maxrate 3000k -bufsize 6000k -g 60 -pix_fmt yuv420p -c:a aac -b:a 128k -f flv {stream_url}"
+							command = f"{FFMPEG_PATH} -v debug -re -fflags +genpts -f concat -safe 0 -i {playlist_path} -c:v libx264 -preset ultrafast -tune zerolatency -vf scale=1920:1080 -r 30 -b:v 3000k -maxrate 3000k -bufsize 6000k -g 60 -pix_fmt yuv420p -c:a aac -b:a 128k -f flv {rtmp_url}"
 
 							#while True: 
 							for x in range(1):
@@ -450,8 +450,8 @@ def myrun():
 									st.write(f"Finished: {video}")
 
 						playlist_path = "/tmp/playlist.txt"
-						stream_url = streamlit_url
-						livestream_playlist(playlist_path, stream_url)
+						rtmp_url = f"rtmp://live.twitch.tv/app/{stream_key}"
+						livestream_playlist(playlist_path, rtmp_url)
 
 						st.write(heoquay)
 
