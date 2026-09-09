@@ -432,7 +432,7 @@ def myrun():
 										if os.path.exists(video_path):
 											videos.append(video_path)
 										else:
-											print(f"[CẢNH BÁO] Không tìm thấy file video: {video_path}")
+											st.write(f"[CẢNH BÁO] Không tìm thấy file video: {video_path}")
 							return videos
 
 
@@ -505,12 +505,12 @@ def myrun():
 							return
 
 						while True:
-							videos = get_videos_from_playlist(PLAYLIST_FILE)
+							#videos = get_videos_from_playlist(PLAYLIST_FILE)
+							#with open(PLAYLIST_FILE, "r", encoding="utf-8") as file:
+							#	lines = file.readlines()
+							#st.write(lines)
 
-							with open(PLAYLIST_FILE, "r", encoding="utf-8") as file:
-								lines = file.readlines()
-
-							st.write(lines)
+							videos = video_path_arr
 
 							if not videos:
 								st.write("[LỖI] Playlist trống hoặc không có file hợp lệ. Thử lại sau 10 giây...")
