@@ -38,6 +38,87 @@ def delete_files_in_temp_folder(defaultFolder='/tmp', Filename_extension='jpg'):
 	for f in glob.glob(f'{defaultFolder}/*.{Filename_extension}'):
 		os.remove(f) 
 
+# ----------START CỤM LƯU FILE MEDIAFIRE----------
+def login_mediafire(email, password):
+	client = MediaFireClient()
+	client.login(
+		email=email,
+		password=password,
+		app_id='42511', #default public app id
+	)
+	return client
+
+def create_private_folder_mediafire(client, foldername):
+	# Create a new folder and update folder default privacy public to private
+	folder_path = f"mf:/{foldername}"
+	result = client.create_folder(folder_path)
+	folderkey = result["folderkey"]
+	result = client.update_folder_metadata(folder_path, privacy="private")
+	#st.write(result)
+	return folderkey
+
+def get_folder_key_by_name(client, parent_folder_path="mf:/", foldername=None):
+	for item in client.get_folder_contents_iter(parent_folder_path):
+		if item['name'] == foldername:
+			return item['folderkey']
+	return None
+
+def upload_file_to_folder_mediafire(client, filepath, foldername):
+	try:
+		# Upload file to specific folder
+		folder_path = f"mf:/{foldername}"			
+		result = client.upload_file(filepath, folder_path)
+		#st.write(result, type(result))
+		return result.filename
+	except Exception as e:
+		exc_type, exc_obj, exc_tb = sys.exc_info()
+		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+		st.write(f"An error occurred: {e} - Error at line: {exc_tb.tb_lineno}") 
+
+def download_all_files_from_foldername_mediafire(client, download_dir, foldername):
+	# Download all files in folder path
+	folder_path = f"mf:/{foldername}"
+	for item in client.get_folder_contents_iter(folder_path):
+		#st.write(item)
+		#st.write(item["filename"], item["privacy"])
+		filename = item["filename"]
+		source_file_path = f"{folder_path}/{filename}"
+		dest_file_path = f'{download_dir}/{filename}'
+		client.download_file(source_file_path, dest_file_path)
+		st.write(f'Downloaded {filename} to {download_dir}')
+
+def download_all_files_from_folderkey_mediafire(client, download_dir, folderkey):
+	try:
+		result_video_path_arr = []
+		folder_path = f"mf:{folderkey}"
+		for i, item in enumerate(client.get_folder_contents_iter(folder_path)):
+			try:
+				#st.write(f"item: {item}", type(item)) 
+				filename = item["filename"]				
+				remote_path = f"mf:{item['quickkey']}"
+				local_path = f"{download_dir}/{filename}"
+				client.download_file(remote_path, local_path)
+				st.write(f'{i}. Downloaded {filename} to {download_dir}')
+				#st.video(local_path)
+				result_video_path_arr.append(local_path)
+			except Exception as e:
+				st.write(f'Unable to download filename and ignored it.', e)
+				pass
+		return result_video_path_arr
+	except Exception as e:
+		exc_type, exc_obj, exc_tb = sys.exc_info()
+		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+		st.write(f"An error occurred: {e} - Error at line: {exc_tb.tb_lineno}")
+		return []
+
+def delete_folder_mediafire(client, foldername):
+	# Delete folder
+	folder_path = f"mf:/{foldername}"
+	result = client.delete_folder(folder_path)   
+	#st.write(result, type(result)) 
+	st.write(result["action"], result["result"]) 
+# ----------END CỤM LƯU FILE MEDIAFIRE----------
+
 # ========== START CỤM PCLOUD ==========
 from pcloud import PyCloud
 #PCLOUD_FOLDER_PATH = "/Temp-video"
