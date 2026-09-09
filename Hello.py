@@ -502,32 +502,8 @@ def myrun():
 					#thread = threading.Thread(target=run_chain_thread_background, daemon=True)
 					#thread.start()
 					#thread.join() #Optional chờ thread chạy xong
+					#st.write(f"Starting livestream at platfom '{platform}' from server, you can quit now.")
 
-					_ = """
-					#C2; Chạy bình thường trên server sẽ ok hơn vì dễ bị tự động reload page khi download nhiều files quá lâu
-					result_video_path_arr = download_all_files_in_folder_pcloud(emailpcloud, passpcloud, folderidpcloud)
-					video_path_arr = result_video_path_arr
-					st.write(video_path_arr)
-					#playlist_file = "/tmp/playlist.txt"
-					convert_video_path_arr_to_playlist_txt_file(video_path_arr, playlist_file)
-
-					total_time = count_total_video_time(result_video_path_arr)
-					#st.write(f"Tổng thời lượng: {total_time:.2f} phút")
-
-					#send email for notification before running                    
-					subject = "noreply"
-					html_body = f"Starting livestream from server URL: {streamlit_url} - total time:{total_time}"
-					send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
-
-					result = run_command_line(command, returnValue=True, ShowError=True)
-					st.write(result)	
-
-					subject = "noreply"
-					html_body = f"Ending livestream from server URL: {streamlit_url}"
-					send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)									
-					_ = """
-
-					st.write(f"Starting livestream at platfom '{platform}' from server, you can quit now.")
 				else:
 					st.error("Sai email hoặc mật khẩu.")
 					st.write(emailpcloud, passpcloud, folderidpcloud, platform, stream_key)
