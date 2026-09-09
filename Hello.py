@@ -11,7 +11,6 @@ import base64
 import psutil
 import imageio_ffmpeg
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
-st.write('FFMPEG_PATH - ', FFMPEG_PATH)
 
 
 
@@ -234,6 +233,9 @@ def myrun():
 
 	st.write("# Welcome to livestream tool.")
 	st.sidebar.success("Select a demo above.")
+
+	st.write('FFMPEG_PATH - ', FFMPEG_PATH)
+
 
 	# Get all query parameters as a dictionary
 	all_params = st.query_params.to_dict()
