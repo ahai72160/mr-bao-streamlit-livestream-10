@@ -416,7 +416,6 @@ def myrun():
 						_ = """
 
 
-
 						def livestream_playlist(playlist_path: str, rtmp_url: str):
 							videos = []
 							# Đọc playlist
@@ -438,17 +437,13 @@ def myrun():
 
 							st.write(f"Found {len(videos)} videos")
 
+							command = f"{FFMPEG_PATH} -v debug -re -fflags +genpts -f concat -safe 0 -i {playlist_file} -c:v libx264 -preset ultrafast -tune zerolatency -vf scale=1920:1080 -r 30 -b:v 3000k -maxrate 3000k -bufsize 6000k -g 60 -pix_fmt yuv420p -c:a aac -b:a 128k -f flv {stream_url}"
+
 							#while True: 
 							for x in range(1):
 								for video in videos:
 									st.write(f"Streaming: {video}")
-									cmd = [
-										FFMPEG_PATH, "-re", "-i", video,
-										"-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
-										"-c:a", "aac", "-b:a", "160k",
-										"-f", "flv",
-										rtmp_url,
-									]
+									cmd = command
 									result = subprocess.run(cmd)
 									if result.returncode != 0:
 										st.write(f"FFmpeg exited with code {result.returncode}: {video}")
