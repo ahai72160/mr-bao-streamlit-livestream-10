@@ -508,7 +508,8 @@ def myrun():
 						)
 
 						# Vòng lặp vô hạn phát lại toàn bộ playlist
-						while True:
+						#while True:
+						for x in range(2):
 							for video in valid_videos:
 								success = stream_single_video(video)
 								if not success:
