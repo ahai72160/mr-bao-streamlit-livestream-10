@@ -236,48 +236,6 @@ def myrun():
 	FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 	st.write('FFMPEG_PATH - ', FFMPEG_PATH)
 
-	def livestream_playlist(playlist_path: str, rtmp_url: str):
-		videos = []
-		# Đọc playlist
-		with open(playlist_path, "r", encoding="utf-8") as f:
-			for line in f:
-				line = line.strip()
-				if not line or line.startswith("#"):
-					continue
-				if line.startswith("file"):
-					# Hỗ trợ: file 'video1.mp4' hoặc file "video1.mp4"
-					parts = line.split(None, 1)
-					if len(parts) < 2:
-						continue
-					video = parts[1].strip().strip("'\"")
-					videos.append(video)
-
-		if not videos:
-			raise ValueError(f"Không tìm thấy video nào trong playlist: {playlist_path}")
-
-		st.write(f"Found {len(videos)} videos")
-
-		while True:
-			for video in videos:
-				print(f"Streaming: {video}")
-				cmd = [
-					FFMPEG_PATH, "-re", "-i", video,
-					"-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
-					"-c:a", "aac", "-b:a", "160k",
-					"-f", "flv",
-					rtmp_url,
-				]
-				result = subprocess.run(cmd)
-				if result.returncode != 0:
-					st.write(f"FFmpeg exited with code {result.returncode}: {video}")
-				st.write(f"Finished: {video}")
-
-	playlist_path = "playlist.txt"
-	stream_url = f"rtmp://live.twitch.tv/app/{stream_key}"
-
-	livestream_playlist(playlist_path, stream_url)
-
-
 	# Get all query parameters as a dictionary
 	all_params = st.query_params.to_dict()
 	#st.write(all_params)
@@ -296,9 +254,12 @@ def myrun():
 		else:
 			try:
 				data = decrypt_payload_by_pycryptodome_place_serverside(MY_SECRET_KEY, encrypted_text)
-				emailpcloud = data.get("emailpcloud")
-				passpcloud = data.get("passpcloud")
-				folderidpcloud = data.get("folderidpcloud")
+				#emailpcloud = data.get("emailpcloud")
+				#passpcloud = data.get("passpcloud")
+				#folderidpcloud = data.get("folderidpcloud")
+				emailmediafire = data.get("emailmediafire")
+				passmediafire = data.get("passmediafire")
+				folderidmediafire = data.get("folderidmediafire")				
 				platform = data.get("platform")   
 				stream_key = data.get("stream_key")
 				loop_count = data.get("loop_count")
@@ -322,32 +283,55 @@ def myrun():
 				st.write("command:", command)
 				_ = """
 
-				if emailpcloud and passpcloud and folderidpcloud and platform and stream_key:
+
+				#if emailpcloud and passpcloud and folderidpcloud and platform and stream_key:
+				if emailmediafire and passmediafire and folderidmediafire and platform and stream_key:
 					#C1; run in background in streamlit cloud
 					def run_chain_thread_background():
-						result_video_path_arr = download_all_files_in_folder_pcloud(emailpcloud, passpcloud, folderidpcloud)
+
+						email=emailmediafire
+						password=passmediafire
+						folderkey = folderidmediafire
+						download_dir = '/tmp'
+						client = login_mediafire(email, password)
+						#st.write(client)									
+						result_video_path_arr = download_all_files_from_folderkey_mediafire(client, download_dir, folderkey)
+						#st.write(result_video_path_arr)
+
+						#result_video_path_arr = download_all_files_in_folder_pcloud(emailpcloud, passpcloud, folderidpcloud)
+						
 						video_path_arr = result_video_path_arr
 						st.write(video_path_arr)
 						#playlist_file = "/tmp/playlist.txt"
 						convert_video_path_arr_to_playlist_txt_file(video_path_arr, playlist_file)
 
-						total_time = count_total_video_time(result_video_path_arr)
+						#total_time = count_total_video_time(result_video_path_arr)
 						#st.write(f"Tổng thời lượng: {total_time}")
 
 						#send email for notification before running               
-						subject = "noreply"
-						html_body = f"Starting livestream from server URL: {streamlit_url} - total time:{total_time}"
-						send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
+						#subject = "noreply"
+						#html_body = f"Starting livestream from server URL: {streamlit_url} - total time:{total_time}"
+						#send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
+
+
+						st.write(command)
+
+						st.write(heoquay)
+
 
 						result = run_command_line(command, returnValue=True, ShowError=True)
 
 						subject = "noreply"
 						html_body = f"Ending livestream from server URL: {streamlit_url}"
 						send_email_by_resend(RESEND_API_KEY, email_receiver, subject, html_body)
-					thread = threading.Thread(target=run_chain_thread_background, daemon=True)
-					thread.start()
+
+					#C1; run function Chạy bình thường trên server để kiểm tra ok hết mới chạy trong background
+					run_chain_thread_background()
+
+					#C2; run function in background in streamlit cloud 
+					#thread = threading.Thread(target=run_chain_thread_background, daemon=True)
+					#thread.start()
 					#thread.join() #Optional chờ thread chạy xong
-					#st.write("Thread completed, continue...")
 
 					_ = """
 					#C2; Chạy bình thường trên server sẽ ok hơn vì dễ bị tự động reload page khi download nhiều files quá lâu
